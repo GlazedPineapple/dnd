@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Context};
-use structopt::StructOpt;
 use regex::Regex;
 use std::str::FromStr;
+use structopt::StructOpt;
 
-#[derive(StructOpt, PartialEq, Debug)]
-/// A tool to roll DND dice with extra sex
+#[derive(StructOpt, Debug)]
+#[structopt(author, about)]
 pub struct CLIArgs {
     /// what to roll
     pub roll: Option<Roll>,
@@ -12,7 +12,7 @@ pub struct CLIArgs {
     pub advantage: Option<Advantage>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Roll {
     /// The dice to roll
     pub dice: Vec<Dice>,
@@ -24,44 +24,69 @@ impl FromStr for Roll {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let input = input.to_lowercase();
+
         // Compile the regex for use matching the die sequence
-        let re = Regex::new(r"(?i)(?:^|(?:\s?\+\s?))([0-9]*)(d)?([0-9]+)")
+        let re = Regex::new(r"(?i)(?:^|(?:\s?\+\s?))([0-9]*)(d?)([0-9]+)")
             .context("Failed to compile regex for matching roll sequence")?;
 
-        // Load the results from the input
-        let results = re.find_iter(input);
+        // Load the captures from the input
+        let captures: Vec<_> = re.captures_iter(&input).collect();
+
+        let roll = Roll {
+            dice: Vec::with_capacity(captures.len()),
+            modifier: None,
+        };
 
         // Store the last end position as to find gaps in matches
         let mut last = 0;
         // Loop over matches
-        for result in results {
+        for cap in captures {
+            let whole = cap.get(0).unwrap();
+
+            let number_at_beginning = cap.get(1).unwrap().as_str();
+            let d = cap.get(2).unwrap().as_str();
+            let number_at_end = cap.get(3).unwrap().as_str();
+
             // Detect a gap in the matches and report it
-            if last != result.start() {
-                return Err(
-                    anyhow!("The dice were malformed between positons '{}' and '{}': {}", last, result.start(), &input[last..result.start()]),
-                );
+            if last != whole.start() {
+                return Err(anyhow!(
+                    "The dice were malformed between positons '{}' and '{}': {}",
+                    last,
+                    whole.start(),
+                    &input[last..whole.start()]
+                ));
             }
 
             // Update the position of the last matched
-            last = result.end();
+            last = whole.end();
+
+            if d == "d" {
+                println!("Die");
+            } else {
+                println!("const");
+            }
 
             // FIXME: Print out the result for debugging
-            println!("result: {:?} {}", result, result.as_str());
+            println!("{} | {} | {} |||| {}", number_at_beginning, d, number_at_end, whole.as_str());
         }
 
         // Check for unmatched die at the end of the string and report it
         if last != input.len() {
             return Err(anyhow!(
-                "There is malformed data at the end of the dice string: {}", &input[last..input.len()]
+                "The dice were malformed between position '{}' and the end: {}",
+                last,
+                &input[last..input.len()]
             ));
         }
 
-        Ok(Roll { dice: vec![], modifier: None })
-        // todo!();
+        println!("_________");
+
+        Ok(roll)
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 /// A group of like dice that will be rolled
 pub struct Dice {
     /// The count of dice to roll
@@ -70,7 +95,7 @@ pub struct Dice {
     pub faces: u8,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 /// The advantage or lack thereof that multiple rolls will have
 pub enum Advantage {
     Advantage,
