@@ -1,15 +1,37 @@
-//! # Proposed command syntax
-//! dnd d4
-//! dnd [1-9]dxx
-//! dnd [1-9]dxx+x
-//! dnd [1-9]dxx+x advantage
-
 use args::CLIArgs;
+use roll::{Dice, Roll, Advantage};
 use structopt::StructOpt;
+use anyhow::anyhow;
 
 mod args;
+mod roll;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let args = CLIArgs::from_args();
-    println!("args: {:?}", args);
+
+    let roll = args.roll.unwrap_or_else(|| {
+        eprintln!("No dice were provided, defaulting to 1d20");
+
+        Roll {
+            dice: vec![Dice {
+                count: 1,
+                faces: 20,
+            }],
+            modifier: None,
+        }
+    });
+
+    let advantage = match (args.advantage, args.disadvantage) {
+        (false, false) => None,
+        (false, true) => Some(Advantage::Disadvantage),
+        (true, false) => Some(Advantage::Advantage),
+        (true, true) => return Err(anyhow!("You cannot have both advantage and disadvantage on one roll")),
+    };
+
+    dbg!(advantage, roll);
+
+    let result = roll::roll(roll, advantage);
+    println!("Result: {}", result);
+
+    Ok(())
 }

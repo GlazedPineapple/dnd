@@ -2,22 +2,19 @@ use anyhow::{anyhow, Context};
 use regex::Regex;
 use std::str::FromStr;
 use structopt::StructOpt;
+use crate::roll::{Roll, Dice};
 
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
 pub struct CLIArgs {
     /// what to roll
     pub roll: Option<Roll>,
+    #[structopt(short, long)]
     /// whether player has advantage
-    pub advantage: Option<Advantage>,
-}
-
-#[derive(Debug)]
-pub struct Roll {
-    /// The dice to roll
-    pub dice: Vec<Dice>,
-    /// The modifier to append to the result
-    pub modifier: Option<u8>,
+    pub advantage: bool,
+    #[structopt(short, long)]
+    /// whether player has disadvantage
+    pub disadvantage: bool,
 }
 
 impl FromStr for Roll {
@@ -33,7 +30,7 @@ impl FromStr for Roll {
         // Load the captures from the input
         let captures: Vec<_> = re.captures_iter(&input).collect();
 
-        let roll = Roll {
+        let mut roll = Roll {
             dice: Vec::with_capacity(captures.len()),
             modifier: None,
         };
@@ -41,7 +38,7 @@ impl FromStr for Roll {
         // Store the last end position as to find gaps in matches
         let mut last = 0;
         // Loop over matches
-        for cap in captures {
+        for (i,cap) in captures.iter().enumerate() {
             let whole = cap.get(0).unwrap();
 
             let number_at_beginning = cap.get(1).unwrap().as_str();
@@ -62,13 +59,16 @@ impl FromStr for Roll {
             last = whole.end();
 
             if d == "d" {
-                println!("Die");
+                roll.dice.push(Dice {
+                    count: number_at_beginning.parse().unwrap_or(1),
+                    faces: number_at_end.parse().unwrap_or(6)
+                });
             } else {
-                println!("const");
+                if i != captures.len() - 1 {
+                    return Err(anyhow!("The constant `{}` must be the last element in the dice", whole.as_str()));
+                }
+                roll.modifier.replace(format!("{}{}", number_at_beginning, number_at_end).parse().unwrap_or(0));
             }
-
-            // FIXME: Print out the result for debugging
-            println!("{} | {} | {} |||| {}", number_at_beginning, d, number_at_end, whole.as_str());
         }
 
         // Check for unmatched die at the end of the string and report it
@@ -80,36 +80,6 @@ impl FromStr for Roll {
             ));
         }
 
-        println!("_________");
-
         Ok(roll)
-    }
-}
-
-#[derive(Debug)]
-/// A group of like dice that will be rolled
-pub struct Dice {
-    /// The count of dice to roll
-    pub count: u8,
-    /// The faces on the die to roll
-    pub faces: u8,
-}
-
-#[derive(Debug)]
-/// The advantage or lack thereof that multiple rolls will have
-pub enum Advantage {
-    Advantage,
-    Disadvantage,
-}
-
-impl FromStr for Advantage {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "advantage" | "a" => Ok(Self::Advantage),
-            "disadvantage" | "d" => Ok(Self::Disadvantage),
-            _ => Err(anyhow!("The advantage type provided was not valid. Only `advantage` or `disadvantage` or their first letters are valid.")),
-        }
     }
 }
