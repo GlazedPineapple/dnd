@@ -1,20 +1,23 @@
+use crate::roll::{Dice, Roll};
 use anyhow::{anyhow, Context};
 use regex::Regex;
 use std::str::FromStr;
 use structopt::StructOpt;
-use crate::roll::{Roll, Dice};
 
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
 pub struct CLIArgs {
     /// what to roll
-    pub roll: Option<Roll>,
+    pub roll: Vec<String>,
     #[structopt(short, long)]
     /// whether player has advantage
     pub advantage: bool,
     #[structopt(short, long)]
     /// whether player has disadvantage
     pub disadvantage: bool,
+    #[structopt(short, long)]
+    /// whether to hide verbose messages from the output
+    pub silent: bool,
 }
 
 impl FromStr for Roll {
@@ -38,7 +41,7 @@ impl FromStr for Roll {
         // Store the last end position as to find gaps in matches
         let mut last = 0;
         // Loop over matches
-        for (i,cap) in captures.iter().enumerate() {
+        for (i, cap) in captures.iter().enumerate() {
             let whole = cap.get(0).unwrap();
 
             let number_at_beginning = cap.get(1).unwrap().as_str();
@@ -55,20 +58,41 @@ impl FromStr for Roll {
                 ));
             }
 
-            // Update the position of the last matched
-            last = whole.end();
-
             if d == "d" {
-                roll.dice.push(Dice {
-                    count: number_at_beginning.parse().unwrap_or(1),
-                    faces: number_at_end.parse().unwrap_or(6)
-                });
+                let count = number_at_beginning.parse().unwrap_or(1);
+                let faces = number_at_end.parse().unwrap_or(6);
+
+                if count == 0 {
+                    return Err(anyhow!(
+                        "`{}` is an invalid die. You must have one or more dice.",
+                        whole.as_str()
+                    ));
+                }
+
+                if faces == 0 {
+                    return Err(anyhow!(
+                        "`{}` is an invalid die. A die cannot have 0 faces.",
+                        whole.as_str()
+                    ));
+                }
+
+                roll.dice.push(Dice { count, faces });
             } else {
                 if i != captures.len() - 1 {
-                    return Err(anyhow!("The constant `{}` must be the last element in the dice", whole.as_str()));
+                    return Err(anyhow!(
+                        "The constant `{}` must be the last element in the dice",
+                        whole.as_str()
+                    ));
                 }
-                roll.modifier.replace(format!("{}{}", number_at_beginning, number_at_end).parse().unwrap_or(0));
+                roll.modifier.replace(
+                    format!("{}{}", number_at_beginning, number_at_end)
+                        .parse()
+                        .unwrap_or(0),
+                );
             }
+
+            // Update the position of the last matched
+            last = whole.end();
         }
 
         // Check for unmatched die at the end of the string and report it
