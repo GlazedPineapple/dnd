@@ -13,7 +13,7 @@ pub fn roll(roll: Roll) -> RollResult {
     );
     for die in roll.dice {
         for _ in 0..die.count {
-            let result = rng.gen_range(1, die.faces);
+            let result = rng.gen_range(1, die.faces + 1);
             sum += result;
             rolls.push(DieRoll {
                 result,
@@ -53,8 +53,8 @@ pub fn roll_with_advantage(
 ) -> AdvantageRollResult {
     let mut rng = thread_rng();
 
-    let a = rng.gen_range(1, faces);
-    let b = rng.gen_range(1, faces);
+    let a = rng.gen_range(1, faces + 1);
+    let b = rng.gen_range(1, faces + 1);
 
     let result_sin_modifier = match advantage {
         Advantage::Advantage => a.max(b),
