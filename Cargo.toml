@@ -5,6 +5,10 @@ authors = ["Elliot <eokovacs1@gmail.com>"]
 description = "A tool to roll dice for tabletop games"
 edition = "2018"
 
+[package.metadata.bundle]
+name = "Dnd Dice Roller"
+identifier = "tech.elliotsworld.dnd"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
