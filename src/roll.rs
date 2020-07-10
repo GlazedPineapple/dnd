@@ -18,7 +18,7 @@ pub fn roll(roll: Roll) -> RollResult {
             rolls.push(DieRoll {
                 result,
                 faces: die.faces,
-                sum
+                sum,
             });
         }
     }
@@ -26,7 +26,7 @@ pub fn roll(roll: Roll) -> RollResult {
     RollResult {
         sum: sum + roll.modifier.unwrap_or(0),
         rolls,
-        modifier: roll.modifier
+        modifier: roll.modifier,
     }
 }
 
@@ -35,7 +35,7 @@ pub fn roll(roll: Roll) -> RollResult {
 pub struct RollResult {
     pub sum: u32,
     pub rolls: Vec<DieRoll>,
-    pub modifier: Option<u32>
+    pub modifier: Option<u32>,
 }
 
 #[derive(Debug)]
@@ -43,7 +43,7 @@ pub struct RollResult {
 pub struct DieRoll {
     pub result: u32,
     pub faces: u32,
-    pub sum: u32
+    pub sum: u32,
 }
 
 pub fn roll_with_advantage(

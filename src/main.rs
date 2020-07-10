@@ -91,7 +91,8 @@ fn main() -> anyhow::Result<()> {
             if let Some(modifier) = result.modifier {
                 println!(
                     "A modifier of {} was added bringing the total sum to {}",
-                    modifier, result.sum.to_string().green().bold()
+                    modifier,
+                    result.sum.to_string().green().bold()
                 );
             } else {
                 println!("The total sum is {}", result.sum.to_string().green().bold());
