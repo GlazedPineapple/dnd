@@ -59,10 +59,10 @@ jobs:
       - name: Get platform specific asset name
         id: asset_name
         run: |
-          if [ ${{ matrix.os }} == "windows-latest" ]; then
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
             mv ./target/release/dnd.exe ./target/release/x86_64-windows-dnd.exe 
             echo "::set-output name=x86_64-windows-dnd.exe"
-          elif [ ${{ matrix.os }} == "windows-latest" ]; then
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             mv ./target/release/dnd.exe ./target/release/x86_64-linux-dnd 
             echo "::set-output name=x86_64-linx-dnd"
           else
