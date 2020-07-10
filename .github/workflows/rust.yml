@@ -24,26 +24,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
-  create_release:
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
-          body: >
-            Download the binaries for Release ${{ github.ref }} below for your platform,
-            or use the provided shell script for installation
-          draft: false
-          prerelease: false
-      - run: echo ::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}
   build:
-    needs: [create_release, test]
+    needs: [test]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -72,14 +54,42 @@ jobs:
             mv ./target/release/dnd ./target/release/x86_64-macos-dnd 
             echo "::set-output name=file::x86_64-macos-dnd"
           fi
-      - run: ${{ toJSON(needs) }}
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.asset_name.outputs.file }}
+          path: ./target/release/
+  create_release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        file: [none, x86_64-windows-dnd.exe, x86_64-linx-dnd, x86_64-macos-dnd]
+    steps:
+      - name: Create Release
+        if: ${{ matrix.file == none }}
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./target/release/
-          asset_name: ${{ steps.asset_name.outputs.name }}
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          body: >
+            Download the binaries for Release ${{ github.ref }} below for your platform,
+            or use the provided shell script for installation
+          draft: false
+          prerelease: false
+      - uses: actions/download-artifact@v2
+        if: ${{ matrix.file != none }}
+        with:
+          path: ./artifacts
+      - name: Upload Release Asset macos
+        uses: actions/upload-release-asset@v1
+        if: ${{ matrix.file != none }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts
+          asset_name: x86_64-macos-dnd
           asset_content_type: application/octet-stream
