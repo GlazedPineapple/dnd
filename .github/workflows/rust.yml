@@ -41,7 +41,7 @@ jobs:
             or use the provided shell script for installation
           draft: false
           prerelease: false
-      - run: ${{ toJSON(needs) }}
+      - run: ${{ toJSON(steps) }}
   build:
     needs: [create_release, test]
     runs-on: ${{ matrix.os }}
