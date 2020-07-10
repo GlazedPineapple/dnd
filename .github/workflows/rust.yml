@@ -15,12 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v2
+      - name: Get Deps
 # Install build dependencies
 run: apt install clang gcc g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev
 
 # Add macOS Rust target
 run: rustup target add x86_64-apple-darwin
 
-    - uses: actions/checkout@v2
     - name: Build
       run: cargo build --target x86_64-apple-darwin --verbose
