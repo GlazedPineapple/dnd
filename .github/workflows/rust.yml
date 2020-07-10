@@ -1,27 +1,27 @@
-name: Rust
+on: [push]
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-env:
-  CARGO_TERM_COLOR: always
+name: CI
 
 jobs:
-  build:
-
+  build_and_test:
+    name: Rust project
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
-      - name: Get Deps
-# Install build dependencies
-run: apt install clang gcc g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev
-
-# Add macOS Rust target
-run: rustup target add x86_64-apple-darwin
-
-    - name: Build
-      run: cargo build --target x86_64-apple-darwin --verbose
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+  jobs:
+  build_and_test:
+    name: Rust project
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo build --release --all-features
