@@ -63,13 +63,13 @@ jobs:
 
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             mv ./target/release/dnd.exe ./target/release/x86_64-windows-dnd.exe 
-            echo "::set-output name=x86_64-windows-dnd.exe"
+            echo "::set-output name=file::x86_64-windows-dnd.exe"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             mv ./target/release/dnd ./target/release/x86_64-linux-dnd 
-            echo "::set-output name=x86_64-linx-dnd"
+            echo "::set-output name=file::x86_64-linx-dnd"
           else
             mv ./target/release/dnd ./target/release/x86_64-macos-dnd 
-            echo "::set-output name=x86_64-macos-dnd"
+            echo "::set-output name=file::x86_64-macos-dnd"
           fi
       - run: echo ${{ toJSON(needs.create_release.outputs) }}
       - name: Upload Release Asset
