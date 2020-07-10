@@ -41,6 +41,7 @@ jobs:
           args: --release --all-features
       - name: Get platform specific asset name
         id: asset_name
+        shell: bash
         run: |
           set -ex
 
