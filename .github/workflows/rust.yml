@@ -41,7 +41,7 @@ jobs:
             or use the provided shell script for installation
           draft: false
           prerelease: false
-      - run: ${{ toJSON(steps) }}
+      - run: echo ::set-output name=upload_url::${{ steps.create_release.outputs.upload_url }}
   build:
     needs: [create_release, test]
     runs-on: ${{ matrix.os }}
