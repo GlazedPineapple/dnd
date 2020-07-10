@@ -3,6 +3,7 @@ on: [push]
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,6 +26,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
   build:
+    name: Build
     needs: [test]
     runs-on: ${{ matrix.os }}
     strategy:
@@ -60,14 +62,13 @@ jobs:
           name: ${{ steps.asset_name.outputs.file }}
           path: ./target/release/
   create_release:
+    name: Create Release
     needs: [build]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        file: [none, x86_64-windows-dnd.exe, x86_64-linx-dnd, x86_64-macos-dnd]
+    outputs:
+      url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Create Release
-        if: ${{ matrix.file }} == "none"
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -80,17 +81,23 @@ jobs:
             or use the provided shell script for installation
           draft: false
           prerelease: false
+  upload_assets:
+    name: Upload Release Assets
+    needs: [create_release]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        file: [x86_64-windows-dnd.exe, x86_64-linx-dnd, x86_64-macos-dnd]
+    steps:
       - uses: actions/download-artifact@v2
-        if: ${{ matrix.file }} != "none"
         with:
           path: ./artifacts
       - name: Upload Release Asset macos
         uses: actions/upload-release-asset@v1
-        if: ${{ matrix.file }} != "none"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ./artifacts
           asset_name: x86_64-macos-dnd
           asset_content_type: application/octet-stream
