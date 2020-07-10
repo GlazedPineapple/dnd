@@ -66,7 +66,7 @@ jobs:
         file: [none, x86_64-windows-dnd.exe, x86_64-linx-dnd, x86_64-macos-dnd]
     steps:
       - name: Create Release
-        if: ${{ matrix.file == none }}
+        if: ${{ matrix.file == "none" }}
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -80,12 +80,12 @@ jobs:
           draft: false
           prerelease: false
       - uses: actions/download-artifact@v2
-        if: ${{ matrix.file != none }}
+        if: ${{ matrix.file != "none" }}
         with:
           path: ./artifacts
       - name: Upload Release Asset macos
         uses: actions/upload-release-asset@v1
-        if: ${{ matrix.file != none }}
+        if: ${{ matrix.file != "none" }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
