@@ -59,6 +59,9 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      - name: Install cargo-wix
+        if: matrix.os == 'windows-latest'
+        run: cargo install cargo-wix
       - uses: actions-rs/cargo@v1
         name: cargo build
         with:
@@ -90,9 +93,10 @@ jobs:
           asset_name: ${{ steps.asset_name.outputs.name }}
           asset_content_type: application/octet-stream
       - name: Build Windows Installer
-        if: ${{ matrix.os }} == "windows-latest"
-        run: cargo install cargo-wix && cargo wix
+        if: matrix.os == 'windows-latest'
+        run: cargo wix
       - name: Upload Windows Installer
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
