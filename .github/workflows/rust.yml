@@ -80,7 +80,7 @@ jobs:
             echo "::set-output name=name::x86_64-macos-dnd"
             echo "::set-output name=bin::dnd"
           fi
-      - name: Upload Release Asset
+      - name: Upload Prebuilt Binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,4 +88,16 @@ jobs:
           upload_url: ${{ needs.create_release.outputs.url }}
           asset_path: ./target/release/${{ steps.asset_name.outputs.bin }}
           asset_name: ${{ steps.asset_name.outputs.name }}
+          asset_content_type: application/octet-stream
+      - name: Build Windows Installer
+        if: matrix.os == "windows-latest"
+        run: cargo install cargo-wix && cargo wix
+      - name: Upload Windows Installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.url }}
+          asset_path: ./target/wix
+          asset_name: dnd-0.1.0-x86_64.msi
           asset_content_type: application/octet-stream
