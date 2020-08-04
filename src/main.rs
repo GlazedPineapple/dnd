@@ -75,13 +75,13 @@ fn main() -> anyhow::Result<()> {
                     result.result_sin_modifier, modifier
                 );
             }
+            #[cfg(not(windows))]
+            let result_formatted = result.result.to_string().green().bold();
+            #[cfg(windows)]
+            let result_formatted = result.result;
             println!(
                 "{}.",
-                if cfg!(not(windows)) {
-                    result.result.to_string().green().bold().to_string()
-                } else {
-                    result.result.to_string()
-                }
+                result_formatted                
             );
         }
     } else {
@@ -96,24 +96,22 @@ fn main() -> anyhow::Result<()> {
                     roll.faces, roll.result, roll.sum
                 );
             }
+
+            #[cfg(not(windows))]
+            let sum_formatted = result.sum.to_string().green().bold();
+            #[cfg(windows)]
+            let sum_formatted =  result.sum;
+
             if let Some(modifier) = result.modifier {
                 println!(
                     "A modifier of {} was added bringing the total sum to {}",
                     modifier,
-                    if cfg!(not(windows)) {
-                        result.sum.to_string().green().bold().to_string()
-                    } else {
-                        result.sum.to_string()
-                    }
+                    sum_formatted
                 );
             } else {
                 println!(
                     "The total sum is {}",
-                    if cfg!(not(windows)) {
-                        result.sum.to_string().green().bold().to_string()
-                    } else {
-                        result.sum.to_string()
-                    }
+                    sum_formatted
                 );
             }
         }
