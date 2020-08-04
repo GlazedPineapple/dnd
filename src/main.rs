@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use args::CLIArgs;
+#[cfg(not(windows))]
 use colored::*;
 use roll::{Advantage, Dice, Roll};
 use std::str::FromStr;
@@ -74,7 +75,14 @@ fn main() -> anyhow::Result<()> {
                     result.result_sin_modifier, modifier
                 );
             }
-            println!("{}.", result.result.to_string().green().bold());
+            println!(
+                "{}.",
+                if cfg!(not(windows)) {
+                    result.result.to_string().green().bold().to_string()
+                } else {
+                    result.result.to_string()
+                }
+            );
         }
     } else {
         let result = roll::roll(roll);
@@ -92,10 +100,21 @@ fn main() -> anyhow::Result<()> {
                 println!(
                     "A modifier of {} was added bringing the total sum to {}",
                     modifier,
-                    result.sum.to_string().green().bold()
+                    if cfg!(not(windows)) {
+                        result.sum.to_string().green().bold().to_string()
+                    } else {
+                        result.sum.to_string()
+                    }
                 );
             } else {
-                println!("The total sum is {}", result.sum.to_string().green().bold());
+                println!(
+                    "The total sum is {}",
+                    if cfg!(not(windows)) {
+                        result.sum.to_string().green().bold().to_string()
+                    } else {
+                        result.sum.to_string()
+                    }
+                );
             }
         }
         // dbg!(result);
