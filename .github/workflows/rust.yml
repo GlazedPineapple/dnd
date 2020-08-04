@@ -90,7 +90,7 @@ jobs:
           asset_name: ${{ steps.asset_name.outputs.name }}
           asset_content_type: application/octet-stream
       - name: Build Windows Installer
-        if: matrix.os == "windows-latest"
+        if: ${{ matrix.os == "windows-latest" }}
         run: cargo install cargo-wix && cargo wix
       - name: Upload Windows Installer
         uses: actions/upload-release-asset@v1
