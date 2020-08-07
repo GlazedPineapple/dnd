@@ -95,6 +95,10 @@ jobs:
       - name: Build Windows Installer
         if: matrix.os == 'windows-latest'
         run: cargo wix
+      - name: Sign Windows Installer
+        if: matrix.os == 'windows-latest'
+        run: signtool sign /f .\wix\key.p12 /p ${{secrets.SIGNED_PASSWORD}} .\target\wix\dnd-0.1.0-x86_64.msi
+
       - name: Upload Windows Installer
         if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
