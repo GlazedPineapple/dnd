@@ -97,7 +97,7 @@ jobs:
         run: cargo wix
       - name: Sign Windows Installer
         if: matrix.os == 'windows-latest'
-        run: echo signtool sign /f .\wix\key.p12 /p ${{secrets.SIGNED_PASSWORD}} .\target\wix\dnd-0.1.0-x86_64.msi | C:\Windows\System32\cmd.exe /k C:\Program^^ Files^^ ^^(x86^^)\Microsoft^^ Visual^^ Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat
+        run: echo signtool sign /f .\wix\key.p12 /p ${{secrets.SIGNED_PASSWORD}} .\target\wix\dnd-0.1.0-x86_64.msi | C:\Windows\System32\cmd.exe /k C:\Program^^ Files^^ ^^(x86^^)\Microsoft^^ Visual^^ Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat
         shell: cmd
       - name: Upload Windows Installer
         if: matrix.os == 'windows-latest'
